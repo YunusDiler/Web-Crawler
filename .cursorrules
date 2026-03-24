@@ -1,0 +1,68 @@
+# Project: Web Crawler & Search Engine
+# AI Coding Standards (.cursorrules)
+
+## Architecture Constraints
+
+- **stdlib-first**: All crawl, parse, and persistence logic MUST use Python standard library only.
+  - HTTP: `urllib.request` (NOT requests, httpx, aiohttp)
+  - HTML parsing: `html.parser` (NOT BeautifulSoup, lxml)
+  - Database: `sqlite3` (NOT SQLAlchemy, Peewee)
+  - Concurrency: `threading`, `concurrent.futures` (NOT asyncio for core crawl)
+- **Sole external dependency**: Flask (for the web dashboard). No other pip packages for core functionality.
+
+## Concurrency Rules
+
+- All shared state must be protected by locks or stored in SQLite (which serializes writes via WAL mode).
+- Use `concurrent.futures.ThreadPoolExecutor` for the worker pool, not raw threads.
+- Rate limiting: Use token-bucket pattern, not simple semaphores.
+- Back pressure: Three levels (GREEN/YELLOW/RED) based on queue depth watermarks.
+
+## Code Style
+
+- Python 3.10+ with type hints on all function signatures.
+- Docstrings for every module, class, and public function.
+- Module-level logging via `logging.getLogger(__name__)`.
+- No global mutable state outside of explicitly thread-safe classes.
+- Prefer composition over inheritance.
+
+## Database Conventions
+
+- SQLite in WAL mode for concurrent read/write.
+- Connection-per-thread model (thread-local storage).
+- All schema changes in `_initialize_schema()` with `CREATE TABLE IF NOT EXISTS`.
+- Primary keys: `(url, job_id)` for pages, `(term, url, job_id)` for index.
+
+## Testing
+
+- Unit tests for every module using `unittest`.
+- Integration tests for storage thread-safety.
+- Test the search relevancy model (title boost ranking).
+- All tests must pass before committing.
+
+## File Structure
+
+```
+crawler/
+├── app.py          # Flask server + REST API
+├── indexer.py      # Crawl orchestrator
+├── fetcher.py      # HTTP fetching (urllib)
+├── parser.py       # HTML parsing (html.parser)
+├── searcher.py     # Search query engine
+├── storage.py      # SQLite persistence
+├── cli.py          # Command-line interface
+├── tests.py        # Test suite
+├── templates/
+│   └── dashboard.html
+├── requirements.txt
+├── .gitignore
+├── readme.md
+├── product_prd.md
+└── recommendation.md
+```
+
+## API Design
+
+- REST endpoints: `/api/index`, `/api/search`, `/api/status/<id>`, `/api/jobs`, `/api/stop/<id>`
+- Search returns triples: `(relevant_url, origin_url, depth)`
+- All responses are JSON.
+- Errors return appropriate HTTP status codes with `{"error": "message"}`.

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web Crawler — Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0c0e13;
+    --surface: #151821;
+    --surface-2: #1c2030;
+    --border: #2a2f42;
+    --text: #e1e4ed;
+    --text-dim: #7a8098;
+    --accent: #5b8af5;
+    --accent-glow: rgba(91, 138, 245, 0.15);
+    --green: #3dd68c;
+    --yellow: #f5c542;
+    --red: #f5574e;
+    --green-bg: rgba(61, 214, 140, 0.08);
+    --yellow-bg: rgba(245, 197, 66, 0.08);
+    --red-bg: rgba(245, 87, 78, 0.08);
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'DM Sans', -apple-system, sans-serif;
+    --radius: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 2rem; padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 {
+    font-size: 1.5rem; font-weight: 700; letter-spacing: -0.03em;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  header h1 span { color: var(--accent); }
+  .header-badge {
+    font-family: var(--mono); font-size: 0.7rem; font-weight: 500;
+    background: var(--accent-glow); color: var(--accent); border: 1px solid rgba(91,138,245,0.2);
+    padding: 0.25rem 0.7rem; border-radius: 20px;
+  }
+
+  /* ── Panels ───────────────────────────────── */
+  .panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem;
+  }
+  .panel-title {
+    font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 1rem;
+  }
+
+  /* ── Index Form ───────────────────────────── */
+  .form-row {
+    display: flex; gap: 0.75rem; align-items: stretch; flex-wrap: wrap;
+  }
+  .form-row input, .form-row select {
+    font-family: var(--mono); font-size: 0.85rem;
+    background: var(--surface-2); border: 1px solid var(--border);
+    color: var(--text); padding: 0.65rem 1rem; border-radius: 8px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .form-row input:focus, .form-row select:focus { border-color: var(--accent); }
+  .form-row input[type="text"] { flex: 1; min-width: 200px; }
+  .form-row select { width: 100px; }
+
+  button {
+    font-family: var(--sans); font-size: 0.85rem; font-weight: 600;
+    padding: 0.65rem 1.4rem; border-radius: 8px; border: none;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { filter: brightness(1.15); }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-danger:hover { filter: brightness(1.15); }
+  .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.75rem; }
+
+  /* ── Metrics Grid ─────────────────────────── */
+  .metrics-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+  }
+  .metric-card {
+    background: var(--surface-2); border-radius: 8px;
+    padding: 1rem; text-align: center;
+  }
+  .metric-value {
+    font-family: var(--mono); font-size: 1.6rem; font-weight: 700;
+    line-height: 1.2; margin-bottom: 0.25rem;
+  }
+  .metric-label {
+    font-size: 0.7rem; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--text-dim);
+  }
+
+  /* ── Backpressure Indicator ───────────────── */
+  .bp-bar {
+    height: 6px; border-radius: 3px; background: var(--surface-2);
+    margin-top: 1rem; overflow: hidden; position: relative;
+  }
+  .bp-fill {
+    height: 100%; border-radius: 3px; transition: width 0.6s ease, background 0.4s;
+  }
+  .bp-label {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-family: var(--mono); font-size: 0.8rem; font-weight: 500;
+    margin-top: 0.5rem;
+  }
+  .bp-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .bp-green .bp-fill { background: var(--green); }
+  .bp-green .bp-dot { background: var(--green); }
+  .bp-yellow .bp-fill { background: var(--yellow); }
+  .bp-yellow .bp-dot { background: var(--yellow); }
+  .bp-red .bp-fill { background: var(--red); }
+  .bp-red .bp-dot { background: var(--red); }
+
+  /* ── Search ───────────────────────────────── */
+  .search-row { display: flex; gap: 0.75rem; margin-bottom: 1rem; }
+  .search-row input { flex: 1; }
+
+  /* ── Results Table ────────────────────────── */
+  .results-table {
+    width: 100%; border-collapse: collapse; font-size: 0.85rem;
+  }
+  .results-table th {
+    text-align: left; padding: 0.6rem 0.8rem;
+    font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+  }
+  .results-table td {
+    padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(42,47,66,0.5);
+    font-family: var(--mono); font-size: 0.78rem;
+    word-break: break-all;
+  }
+  .results-table tr:hover td { background: var(--surface-2); }
+  .results-table a { color: var(--accent); text-decoration: none; }
+  .results-table a:hover { text-decoration: underline; }
+
+  /* ── Jobs List ─────────────────────────────── */
+  .job-chip {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.5rem 0.9rem; margin: 0.25rem;
+    font-size: 0.8rem; cursor: pointer; transition: border-color 0.2s;
+  }
+  .job-chip:hover { border-color: var(--accent); }
+  .job-chip.active { border-color: var(--accent); background: var(--accent-glow); }
+  .job-status-dot {
+    width: 7px; height: 7px; border-radius: 50;
+  }
+
+  .empty-state {
+    text-align: center; padding: 2rem; color: var(--text-dim);
+    font-size: 0.9rem;
+  }
+
+  /* ── Two-Column Layout ────────────────────── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* ── Log ────────────────────────────────────── */
+  .log-area {
+    font-family: var(--mono); font-size: 0.72rem; color: var(--text-dim);
+    background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 0.8rem; max-height: 200px; overflow-y: auto; line-height: 1.7;
+  }
+  .log-area .log-info { color: var(--accent); }
+  .log-area .log-ok { color: var(--green); }
+  .log-area .log-err { color: var(--red); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1><span>&#9672;</span> Web Crawler</h1>
+    <span class="header-badge">v1.0 — Native Python</span>
+  </header>
+
+  <!-- ── Index Panel ───────────────────────── -->
+  <div class="panel">
+    <div class="panel-title">Start Crawl</div>
+    <div class="form-row">
+      <input type="text" id="origin" placeholder="https://example.com" value="https://example.com">
+      <select id="depth">
+        <option value="0">k = 0</option>
+        <option value="1" selected>k = 1</option>
+        <option value="2">k = 2</option>
+        <option value="3">k = 3</option>
+        <option value="4">k = 4</option>
+        <option value="5">k = 5</option>
+      </select>
+      <button class="btn-primary" onclick="startCrawl()">Start Indexing</button>
+      <button class="btn-primary" onclick="exportData()" style="background:var(--green);">Export p.data</button>
+    </div>
+  </div>
+
+  <!-- ── Jobs ──────────────────────────────── -->
+  <div class="panel" id="jobs-panel" style="display:none;">
+    <div class="panel-title">Jobs</div>
+    <div id="jobs-list"></div>
+  </div>
+
+  <!-- ── Status + Search ───────────────────── -->
+  <div class="two-col" id="main-panels" style="display:none;">
+
+    <!-- Left: Status -->
+    <div>
+      <div class="panel">
+        <div class="panel-title">Crawl Progress</div>
+        <div class="metrics-grid" id="metrics-grid"></div>
+        <div id="bp-container"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Activity Log</div>
+        <div class="log-area" id="log-area">
+          <div class="empty-state">Waiting for crawl to start...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Search -->
+    <div>
+      <div class="panel">
+        <div class="panel-title">Search Index</div>
+        <div class="search-row form-row">
+          <input type="text" id="search-input" placeholder="Enter search query...">
+          <button class="btn-primary" onclick="doSearch()">Search</button>
+        </div>
+        <div id="search-results">
+          <div class="empty-state">Search results will appear here while indexing runs.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let currentJobId = null;
+  let pollTimer = null;
+  const logLines = [];
+
+  function log(msg, cls = 'log-info') {
+    const ts = new Date().toLocaleTimeString();
+    logLines.push(`<span class="${cls}">[${ts}]</span> ${msg}`);
+    if (logLines.length > 100) logLines.shift();
+    const area = document.getElementById('log-area');
+    area.innerHTML = logLines.join('<br>');
+    area.scrollTop = area.scrollHeight;
+  }
+
+  async function startCrawl() {
+    const origin = document.getElementById('origin').value.trim();
+    const k = parseInt(document.getElementById('depth').value);
+    if (!origin) return;
+
+    const resp = await fetch('/api/index', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({origin, k})
+    });
+    const data = await resp.json();
+    currentJobId = data.job_id;
+
+    log(`Started job #${data.job_id} — ${origin} (depth=${k})`, 'log-ok');
+    document.getElementById('main-panels').style.display = 'grid';
+    document.getElementById('jobs-panel').style.display = 'block';
+
+    startPolling();
+    refreshJobs();
+  }
+
+  function startPolling() {
+    if (pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(async () => {
+      if (!currentJobId) return;
+      await refreshStatus();
+      await refreshJobs();
+    }, 1500);
+  }
+
+  async function refreshStatus() {
+    if (!currentJobId) return;
+    const resp = await fetch(`/api/status/${currentJobId}`);
+    const s = await resp.json();
+    if (s.error) return;
+
+    const q = s.queue;
+    const m = s.metrics;
+    const bp = s.backpressure;
+
+    document.getElementById('metrics-grid').innerHTML = `
+      <div class="metric-card"><div class="metric-value">${q.crawled}</div><div class="metric-label">Crawled</div></div>
+      <div class="metric-card"><div class="metric-value">${q.pending}</div><div class="metric-label">Pending</div></div>
+      <div class="metric-card"><div class="metric-value">${q.in_progress}</div><div class="metric-label">In Progress</div></div>
+      <div class="metric-card"><div class="metric-value">${q.failed}</div><div class="metric-label">Failed</div></div>
+      <div class="metric-card"><div class="metric-value">${q.total_discovered}</div><div class="metric-label">Discovered</div></div>
+      <div class="metric-card"><div class="metric-value">${m.pages_per_second}</div><div class="metric-label">Pages/sec</div></div>
+      <div class="metric-card"><div class="metric-value">${m.avg_fetch_ms}ms</div><div class="metric-label">Avg Fetch</div></div>
+      <div class="metric-card"><div class="metric-value">${m.elapsed_seconds}s</div><div class="metric-label">Elapsed</div></div>
+    `;
+
+    const pct = Math.min(100, (bp.queue_depth / bp.high_watermark) * 100);
+    const bpClass = bp.status === 'RED' ? 'bp-red' : bp.status === 'YELLOW' ? 'bp-yellow' : 'bp-green';
+    document.getElementById('bp-container').innerHTML = `
+      <div class="${bpClass}">
+        <div class="bp-bar"><div class="bp-fill" style="width:${pct}%"></div></div>
+        <div class="bp-label"><span class="bp-dot"></span> Backpressure: ${bp.status} — ${bp.queue_depth} / ${bp.high_watermark}</div>
+      </div>
+    `;
+
+    if (!s.is_running && s.job_status === 'completed') {
+      log(`Job #${currentJobId} completed. ${q.crawled} pages crawled.`, 'log-ok');
+    }
+  }
+
+  async function refreshJobs() {
+    const resp = await fetch('/api/jobs');
+    const jobs = await resp.json();
+    const list = document.getElementById('jobs-list');
+    list.innerHTML = jobs.map(j => {
+      const active = j.id === currentJobId ? 'active' : '';
+      const color = j.is_running ? 'var(--green)' : j.status === 'completed' ? 'var(--accent)' : 'var(--text-dim)';
+      return `<span class="job-chip ${active}" onclick="selectJob(${j.id})">
+        <span style="width:7px;height:7px;border-radius:50%;background:${color};display:inline-block;"></span>
+        #${j.id} ${new URL(j.origin).hostname} (k=${j.max_depth}) — ${j.crawled}/${j.total}
+        ${j.is_running ? `<button class="btn-danger btn-sm" onclick="event.stopPropagation();stopJob(${j.id})">Stop</button>` : ''}
+      </span>`;
+    }).join('');
+  }
+
+  function selectJob(jobId) {
+    currentJobId = jobId;
+    document.getElementById('main-panels').style.display = 'grid';
+    refreshStatus();
+    log(`Switched to job #${jobId}`, 'log-info');
+  }
+
+  async function stopJob(jobId) {
+    await fetch(`/api/stop/${jobId}`, {method: 'POST'});
+    log(`Stop requested for job #${jobId}`, 'log-err');
+  }
+
+  async function doSearch() {
+    const q = document.getElementById('search-input').value.trim();
+    if (!q) return;
+    const resp = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+    const data = await resp.json();
+
+    if (data.results && data.results.length > 0) {
+      let html = `<table class="results-table">
+        <tr><th>#</th><th>Relevant URL</th><th>Origin</th><th>Depth</th><th>Freq</th><th>Score</th></tr>`;
+      data.results.forEach((r, i) => {
+        html += `<tr>
+          <td>${i + 1}</td>
+          <td><a href="${r.relevant_url}" target="_blank">${r.relevant_url}</a></td>
+          <td>${r.origin_url}</td>
+          <td>${r.depth}</td>
+          <td>${r.frequency}</td>
+          <td>${r.relevance_score}</td>
+        </tr>`;
+      });
+      html += `</table>`;
+      document.getElementById('search-results').innerHTML = html;
+      log(`Search "${q}" → ${data.count} results`, 'log-ok');
+    } else {
+      document.getElementById('search-results').innerHTML =
+        `<div class="empty-state">No results found for "${q}". Try again as more pages are indexed.</div>`;
+      log(`Search "${q}" → 0 results`, 'log-info');
+    }
+  }
+
+  async function exportData() {
+    const resp = await fetch('/api/export');
+    const data = await resp.json();
+    log(`Exported ${data.entries} entries to ${data.path}`, 'log-ok');
+  }
+
+  // Allow Enter key for search
+  document.getElementById('search-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doSearch();
+  });
+  document.getElementById('origin').addEventListener('keydown', e => {
+    if (e.key === 'Enter') startCrawl();
+  });
+</script>
+</body>
+</html>
