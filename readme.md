@@ -10,7 +10,7 @@ A concurrent web crawler and real-time search engine built with Python. Crawls w
 
 ```bash
 # 1. Clone and enter the project
-git clone https://github.com/<your-username>/crawler.git
+git clone https://github.com/YunusDiler/Web-Crawler.git
 cd crawler
 
 # 2. Create a virtual environment (recommended)
