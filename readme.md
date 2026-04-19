@@ -176,22 +176,34 @@ Tests cover: URL normalization, HTML parsing, tokenization, SQLite thread safety
 
 ```
 crawler/
-├── app.py              # Flask web server + API endpoints
-├── indexer.py          # Crawl orchestrator, thread pool, back pressure
-├── fetcher.py          # HTTP fetching (urllib only)
-├── parser.py           # HTML parsing (html.parser only), tokenization
-├── searcher.py         # Search query engine
-├── storage.py          # SQLite persistence layer
-├── cli.py              # Command-line interface
-├── tests.py            # 47 unit/integration tests
+├── app.py                    # Flask web server + API endpoints
+├── indexer.py                # Crawl orchestrator, thread pool, back pressure
+├── fetcher.py                # HTTP fetching (urllib only)
+├── parser.py                 # HTML parsing (html.parser only), tokenization
+├── searcher.py               # Search query engine
+├── storage.py                # SQLite persistence layer
+├── cli.py                    # Command-line interface
+├── tests.py                  # 47 unit/integration tests
 ├── templates/
-│   └── dashboard.html  # Web dashboard UI
-├── .cursorrules        # AI coding standards
+│   └── dashboard.html        # Web dashboard UI
+├── agents/                   # Multi-agent workflow — agent descriptions
+│   ├── agent-architect.md
+│   ├── storage-agent.md
+│   ├── fetcher-agent.md
+│   ├── parser-agent.md
+│   ├── indexer-agent.md
+│   ├── searcher-agent.md
+│   ├── api-ui-agent.md
+│   ├── test-agent.md
+│   └── docs-agent.md
+├── .claude/agents/           # Claude Code agent configs (runtime)
+├── .cursorrules              # AI coding standards
 ├── .gitignore
-├── requirements.txt    # Flask only
-├── product_prd.md      # Product Requirements Document
-├── recommendation.md   # Production deployment recommendations
-└── readme.md           # This file
+├── requirements.txt          # Flask only
+├── product_prd.md            # Product Requirements Document
+├── multi_agent_workflow.md   # Multi-agent workflow explanation
+├── recommendation.md         # Production deployment recommendations
+└── readme.md                 # This file
 ```
 
 ---
@@ -205,3 +217,22 @@ The system is designed so that **search can run while the indexer is active**, r
 3. No additional locking or synchronization is needed between the indexer and searcher — the database provides the isolation boundary.
 
 For a production system at higher scale, this pattern would translate to a shared search index (e.g., Elasticsearch) that the indexer writes to and the searcher reads from, with near-real-time refresh intervals.
+
+---
+
+## Multi-Agent Workflow
+
+This project was built using a multi-agent AI workflow coordinated through **Claude Code**. Eight specialized agents were each responsible for a distinct part of the system:
+
+| Agent | Responsibility |
+|---|---|
+| `agent-architect` | System decomposition, inter-agent contracts |
+| `storage-agent` | SQLite schema, WAL mode, BFS dequeue |
+| `fetcher-agent` | HTTP fetching (urllib only), robots.txt |
+| `parser-agent` | HTML parsing, tokenization |
+| `indexer-agent` | BFS orchestration, thread pool, back pressure |
+| `searcher-agent` | Query engine, TF scoring |
+| `api-ui-agent` | Flask API, live dashboard |
+| `test-agent` | Unit and integration tests |
+
+Agent description files are in the `/agents` directory. The full workflow — prompts, decisions, and agent interactions — is documented in [`multi_agent_workflow.md`](multi_agent_workflow.md).
