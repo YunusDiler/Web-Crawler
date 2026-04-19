@@ -20,7 +20,6 @@ import time
 import logging
 from concurrent.futures import ThreadPoolExecutor, Future
 from typing import Optional, Callable
-from collections import deque
 
 from storage import CrawlStorage
 from fetcher import fetch_page, is_allowed_by_robots
@@ -381,9 +380,7 @@ class Indexer:
         title_tokens = tokenize(title)
         body_tokens = tokenize(body_text[:50000])
         all_tokens = title_tokens + body_tokens
-        freq = {}
-        for t in all_tokens:
-            freq[t] = freq.get(t, 0) + 1
+        freq = compute_term_frequencies(all_tokens)
         title_set = set(title_tokens)
         if freq:
             self.storage.index_terms(url, job_id, freq, title_set)

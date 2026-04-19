@@ -266,7 +266,7 @@ class CrawlStorage:
         Scoring formula (per the assignment):
             score = (frequency × 10) + 1000 (exact match bonus) - (depth × 5)
 
-        Returns: [{"url", "origin", "depth", "frequency", "relevance_score"}]
+        Returns: [{"url", "origin", "depth", "title", "frequency", "relevance_score"}]
         """
         if not query_terms:
             return []
@@ -278,14 +278,15 @@ class CrawlStorage:
                     ti.url,
                     cj.origin,
                     p.depth,
+                    p.title,
                     SUM(ti.frequency) as total_frequency,
-                    (SUM(ti.frequency * 10 + 1000) - p.depth * 5) as relevance_score
+                    SUM(ti.frequency * (CASE WHEN ti.in_title = 1 THEN 10 ELSE 1 END)) - p.depth * 5 AS relevance_score
                 FROM term_index ti
                 JOIN pages p ON p.url = ti.url AND p.job_id = ti.job_id
                 JOIN crawl_jobs cj ON cj.id = ti.job_id
                 WHERE ti.term IN ({placeholders})
                   AND p.status = 'crawled'
-                GROUP BY ti.url, cj.origin, p.depth
+                GROUP BY ti.url, cj.origin, p.depth, p.title
                 ORDER BY relevance_score DESC
                 LIMIT 50
             """
@@ -295,6 +296,7 @@ class CrawlStorage:
                     "url": r["url"],
                     "origin": r["origin"],
                     "depth": r["depth"],
+                    "title": r["title"],
                     "frequency": r["total_frequency"],
                     "relevance_score": r["relevance_score"],
                 }

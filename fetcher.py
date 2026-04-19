@@ -27,6 +27,10 @@ class FetchResult:
     elapsed_ms: float
     error: Optional[str] = None
 
+    @property
+    def ok(self) -> bool:
+        return self.error is None
+
 
 # Shared robots.txt cache — avoids re-fetching per page
 _robots_cache: dict = {}

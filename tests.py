@@ -265,7 +265,7 @@ class TestStorage(unittest.TestCase):
         # Search should find it
         results = self.storage.search(["python"])
         self.assertEqual(len(results), 1)
-        self.assertEqual(results[0][0], "https://example.com")
+        self.assertEqual(results[0]["url"], "https://example.com")
 
         # Search for non-indexed term
         results2 = self.storage.search(["javascript"])
@@ -325,10 +325,9 @@ class TestSearcher(unittest.TestCase):
         )
         results = search(self.storage, "python")
         self.assertEqual(len(results), 1)
-        url, origin, depth = results[0]
-        self.assertEqual(url, "https://example.com/python")
-        self.assertEqual(origin, "https://example.com")
-        self.assertEqual(depth, 1)
+        self.assertEqual(results[0]["url"], "https://example.com/python")
+        self.assertEqual(results[0]["origin"], "https://example.com")
+        self.assertEqual(results[0]["depth"], 1)
 
     def test_title_boost(self):
         """Pages with query terms in the title should rank higher."""
@@ -346,7 +345,7 @@ class TestSearcher(unittest.TestCase):
         results = search(self.storage, "python")
         self.assertGreaterEqual(len(results), 2)
         # Title-match page should rank first due to 10x title boost
-        self.assertEqual(results[0][0], "https://example.com/title")
+        self.assertEqual(results[0]["url"], "https://example.com/title")
 
     def test_empty_query(self):
         results = search(self.storage, "")
